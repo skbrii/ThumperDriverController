@@ -22,10 +22,10 @@
 
 #define SENSORUPDATEINTERVAL 32000
 
-#define FWDPIN A4
-#define BWDPIN A5
-#define LPIN A6
-#define RPIN A7 //BLUE
+#define FWDPIN A3
+#define BWDPIN A2
+#define LPIN A1
+#define RPIN A0 //BLUE
 
 #include <SoftwareSerial.h>
 
@@ -56,13 +56,48 @@ int sensorUpdateTimer=SENSORUPDATEINTERVAL;
 int batStatus1=0;
 int batStatus2=0;
 
+int key_w=0;
+int key_s=0;
+int key_a=0;
+int key_d=0;
+
 void init_pololu()
 {
+
+  
+  
+  
+  
+  
   pinMode(FWDPIN,INPUT);
   pinMode(BWDPIN,INPUT);
   pinMode(LPIN,INPUT);
   pinMode(RPIN,INPUT);
   
+  digitalWrite(FWDPIN,LOW);
+  digitalWrite(BWDPIN,LOW);
+  digitalWrite(LPIN,LOW);
+  digitalWrite(RPIN,LOW);
+
+/*pinMode(A0,OUTPUT);
+pinMode(A1,OUTPUT);
+pinMode(A2,OUTPUT);
+pinMode(A3,OUTPUT);
+pinMode(A4,OUTPUT);
+pinMode(A5,OUTPUT);
+pinMode(A6,OUTPUT);
+pinMode(A7,OUTPUT);
+  digitalWrite(A0,HIGH);
+ digitalWrite(A1,HIGH);
+ digitalWrite(A2,HIGH);
+ digitalWrite(A3,HIGH);
+ digitalWrite(A4,HIGH);
+ digitalWrite(A5,HIGH);
+ digitalWrite(A6,HIGH);
+ digitalWrite(A7,HIGH);
+*/
+
+
   pinMode(resetPin1,OUTPUT);
   pinMode(errorPin1,INPUT);
 
@@ -483,6 +518,14 @@ void updateSensors()
   }
 }
 
+void readKeys()
+{
+  key_w=digitalRead(FWDPIN);
+  key_s=digitalRead(BWDPIN);
+  key_a=digitalRead(LPIN);
+  key_d=digitalRead(RPIN);
+}
+
 void loop()
 {
     Serial.println("new client");
@@ -494,7 +537,7 @@ void loop()
       if(changes) 
       {
         
-        Serial.write('New\n');
+        //Serial.print("New\n");
         char inByte=0;
         
         //get 
@@ -512,19 +555,18 @@ void loop()
             
           case 1:
 
-            Serial.print(digitalRead(FWDPIN));
-            Serial.print(" ");
-            Serial.print(digitalRead(BWDPIN));
-            Serial.print(" ");
-            Serial.print(digitalRead(LPIN));
-            Serial.print(" ");
-            Serial.print(digitalRead(RPIN));
-            Serial.print(" \n");
+            readKeys();
             
+            move = 1+key_w-key_s;
+            dir = 1-key_a+key_d;
+           
+            Serial.print(move);
+            Serial.print(" ");
+            Serial.println(dir);
             
-            
-            move = 1; // client.read();
-            dir = 1;  // client.read();
+           
+            //move = 1; // client.read();
+            //dir = 1;  // client.read();
             
             if(move!=MIDPOINT)
             {
@@ -558,6 +600,12 @@ void loop()
             
             break;
             
+            
+          case 10:
+            readKeys();
+            
+            
+            break;
           case 3:
             //Serial.print(batStatus1);
             //Serial.print(batStatus2);

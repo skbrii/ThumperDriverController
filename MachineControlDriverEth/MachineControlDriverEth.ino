@@ -49,6 +49,11 @@ String a1="", a2="";
 byte move=0, dir=0;
 byte dmove=0, ddir=0;
 
+int key_w=0;
+int key_s=0;
+int key_a=0;
+int key_d=0;
+
 void init_ethernet()
 {
   Ethernet.begin(mac, ip);
@@ -64,8 +69,8 @@ void setup()
   
   digitalWrite(FWDPIN,LOW);
   digitalWrite(BWDPIN,LOW);
-  digitalWrite(LPIN,HIGH);
-  digitalWrite(RPIN,HIGH);
+  digitalWrite(LPIN,LOW);
+  digitalWrite(RPIN,LOW);
   
   pinMode(FWDPIN,OUTPUT);
   pinMode(BWDPIN,OUTPUT);
@@ -74,6 +79,9 @@ void setup()
   
   init_ethernet();
 }
+
+  
+
 
 void loop()
 {
@@ -87,11 +95,15 @@ void loop()
       if(client.available()) 
       {
         
-        Serial.write('New\n');
+        //Serial.write("New\n");
         char inByte=0;
         
         //get 
         byte command = client.read();
+        
+        Serial.print("getNewCommand");
+        Serial.println(command);
+        
         
         switch(command)
         {
@@ -102,7 +114,23 @@ void loop()
             move = client.read();
             dir = client.read();
             
-            if(move!=MIDPOINT)
+            
+            
+            /*
+            
+            move 0 1 2 0 1 2 0 1 2 
+            dir  0 0 0 1 1 1 2 2 2 
+
+
+            move -1  0  1 -1  0  1 -1  0  1
+            dir  -1 -1 -1  0  0  0  1  1  1
+            
+            comb              0                  
+            
+            */
+            
+            
+            /*if(move!=MIDPOINT)
             {
               if(movePower<400)
                 movePower=400;
@@ -123,6 +151,8 @@ void loop()
             {
               dirPressed=0;
             }
+            */
+            
             
             break;
           case 2:
@@ -132,7 +162,29 @@ void loop()
             dirPower=0;
             
             break;
+          
+          case 10:
+            key_w=client.read();
+            key_s=client.read();
+            key_a=client.read();
+            key_d=client.read();
             
+            digitalWrite(FWDPIN,key_w);
+            digitalWrite(BWDPIN,key_s);
+            digitalWrite(LPIN,key_a);
+            digitalWrite(RPIN,key_d);
+            
+            /*Serial.print(key_w);
+            Serial.print(" ");
+            Serial.print(key_s);
+            Serial.print(" ");
+            Serial.print(key_a);
+            Serial.print(" ");
+            Serial.print(key_d);
+            Serial.print(" \n"); 
+            */
+            
+            break;
           case 3:
             //client.print();
             //client.print();
