@@ -17,10 +17,10 @@
 #define MAXPOWER 1500
 #define MAXDIR 1200
 
-#define FWDPIN 8
-#define BWDPIN 7
-#define LPIN 6
-#define RPIN 5
+#define FWDPIN 40
+#define BWDPIN 39
+#define LPIN 38
+#define RPIN 37 //BLUE
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -61,6 +61,17 @@ void init_ethernet()
 void setup()
 {
   Serial.begin(9600);
+  
+  digitalWrite(FWDPIN,LOW);
+  digitalWrite(BWDPIN,LOW);
+  digitalWrite(LPIN,HIGH);
+  digitalWrite(RPIN,HIGH);
+  
+  pinMode(FWDPIN,OUTPUT);
+  pinMode(BWDPIN,OUTPUT);
+  pinMode(LPIN,OUTPUT);
+  pinMode(RPIN,OUTPUT);
+  
   init_ethernet();
 }
 

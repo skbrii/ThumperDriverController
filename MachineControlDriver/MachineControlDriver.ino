@@ -25,7 +25,7 @@
 #define FWDPIN A4
 #define BWDPIN A5
 #define LPIN A6
-#define RPIN A7
+#define RPIN A7 //BLUE
 
 #include <SoftwareSerial.h>
 
@@ -512,6 +512,17 @@ void loop()
             
           case 1:
 
+            Serial.print(digitalRead(FWDPIN));
+            Serial.print(" ");
+            Serial.print(digitalRead(BWDPIN));
+            Serial.print(" ");
+            Serial.print(digitalRead(LPIN));
+            Serial.print(" ");
+            Serial.print(digitalRead(RPIN));
+            Serial.print(" \n");
+            
+            
+            
             move = 1; // client.read();
             dir = 1;  // client.read();
             
