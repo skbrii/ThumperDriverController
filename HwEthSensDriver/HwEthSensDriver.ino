@@ -568,6 +568,8 @@ void loop()
           case 3:
             client.print(batStatus1);
             client.print(batStatus2);
+          case 10:
+            
             
           default:
             ;
