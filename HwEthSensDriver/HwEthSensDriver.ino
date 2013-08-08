@@ -14,10 +14,10 @@
 
 #define MIDPOINT 1
 
-#define MAXPOWER 1500
+#define MAXPOWER 2000
 #define MAXDIR 1200
 
-#define SENSORUPDATEINTERVAL 32000
+#define SENSORUPDATEINTERVAL 12000
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -50,6 +50,20 @@ int sensorUpdateTimer=SENSORUPDATEINTERVAL;
 
 int batStatus1=0;
 int batStatus2=0;
+
+EthernetClient asker;
+
+struct GPSState
+{
+  long longitude;
+  long latitude;
+  long altitude;
+  long time;
+};
+
+GPSState gpsState;
+
+
 
 void init_ethernet()
 {
@@ -401,7 +415,7 @@ void action()
   runPowerR(fPower-lDir);
 }
 
-void performAction()
+char performAction()
 {
   char changed=0;
   if(movePressed)
@@ -423,6 +437,8 @@ void performAction()
   {
     updateSensors();
   }
+  
+  return changed;
 }
 
 char increaseMovePower()
@@ -491,7 +507,26 @@ void updateSensors()
   {
     batStatus1 = tst_read_battery_status();
     batStatus2 = tst_read_battery_status_2();
+    
+    gpsState.longitude = 589991;
+    gpsState.latitude = 46000;
+    gpsState.altitude = 123;
+    gpsState.time = 12313132;
+
+    //Serial.print(batStatus1);
+    //Serial.print(batStatus2);
+    
+    if (asker!= NULL)
+      asker.print('$');
+      asker.print(batStatus1);
+      asker.print(batStatus2);
+      //asker.print(gpsState.longitude);
+      //asker.print(gpsState.latitude);
+      //asker.print(gpsState.altitude);
+      //asker.print(gpsState.time);
+      
     sensorUpdateTimer=SENSORUPDATEINTERVAL;
+    //delay(10);
     Serial.print("updated\n");
   }
   else
@@ -505,9 +540,11 @@ void loop()
 {
   
   EthernetClient client = server.available();
+  asker = client;
   if (client)
   {
     Serial.println("new client");
+    
     
     while (client.connected()) {
 
@@ -569,6 +606,10 @@ void loop()
             client.print(batStatus1);
             client.print(batStatus2);
           case 10:
+          
+          
+          case 11:
+            client.print("hello");
             
             
           default:
@@ -578,6 +619,15 @@ void loop()
         continue;
       }
     }
+    
+    asker=NULL;
+    //bug when released
+    reset_pololu();
+    move = 1;
+    dir = 1;
+    movePower=0;
+    dirPower=0;
+    
     Serial.println("client disconected");
   }
 }
