@@ -37,8 +37,25 @@ void setup() {
 }
 
 
-void loop() {
+void parse(){
+  if(signature == 0 && strEnd > 6){
+    //we have signature
+    signature = 0;
+    signature |= ((long)stroka[3])<<16;
+    signature |= ((long)stroka[4])<<8;
+    signature |= ((long)stroka[5]); 
+  }
   
+  if (signature != 0)
+  {
+    //we have current bukva for analysing
+    //2 counters: for args, for chars, splitted by ","
+    //Serial.print(bukva);
+    
+  }
+}
+
+void loop() {
   if(SoftSerial.available()) {
     char bukva = SoftSerial.read();
     //stroka[strEnd++] = bukva;
@@ -46,31 +63,22 @@ void loop() {
       
       if (hash==strtol(checkSumm,NULL,16))
       {
-        /*
-        Serial.print('&');
-        Serial.print(hash);
-        Serial.print('&');
-        Serial.print(strtol(checkSumm,NULL,16));
-        Serial.write('|');
-        Serial.write(stroka, strEnd);
-        */
         stroka_poluchena();
       }
       strEnd = 0;
       check=false;
       i=0;
       hash=0;
-      //stroka[strEnd++] = bukva;
     }
     else
     {
-      //stroka[strEnd++] = bukva;
-
       if(check == true){
         checkSumm[i++] = bukva;
       }
       else
       {
+        //parse usual expression
+        parse();
         hash ^= bukva;
       }
         
@@ -80,7 +88,6 @@ void loop() {
       }
     }
     stroka[strEnd++] = bukva;
-
 
 /*
     if(bukva == '$') {
@@ -105,7 +112,6 @@ void loop() {
     }
     */
   }
-  
 }
 
 void proverka_stroki() {
@@ -120,11 +126,13 @@ unsigned char chislo_v_bukvu(byte chislo) {
   return chislo < 10 ? '0' + chislo : 'A' + chislo - 10;
 }
 
+
+//Depricated
 void stroka_poluchena() {  
   
-  Serial.print(" + ");
+  //Serial.print(" + ");
   Serial.write(stroka, strEnd);
-  Serial.print(" | ");
+  //Serial.print(" | ");
   
   byte stroka_opoznana = true;
   
