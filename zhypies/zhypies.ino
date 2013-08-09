@@ -6,7 +6,14 @@
 unsigned char stroka[RAZMER_STROKI];
 int konets = 0;
 byte est_nachalo = false;
-unsigned char proverka[2];
+char proverka[2];
+long signature;
+int strEnd;
+char checkSumm[3]="";
+boolean check=false;
+char i=0;
+int hash = 0;
+
 
 struct dannye_ot_zhps {
   byte vremya_chasy;
@@ -29,9 +36,53 @@ void setup() {
   Serial.begin(9600);
 }
 
+
 void loop() {
+  
   if(SoftSerial.available()) {
-    unsigned char bukva = SoftSerial.read();
+    char bukva = SoftSerial.read();
+    //stroka[strEnd++] = bukva;
+    if(bukva == '$'){
+      
+      if (hash==strtol(checkSumm,NULL,16))
+      {
+        /*
+        Serial.print('&');
+        Serial.print(hash);
+        Serial.print('&');
+        Serial.print(strtol(checkSumm,NULL,16));
+        Serial.write('|');
+        Serial.write(stroka, strEnd);
+        */
+        stroka_poluchena();
+      }
+      strEnd = 0;
+      check=false;
+      i=0;
+      hash=0;
+      //stroka[strEnd++] = bukva;
+    }
+    else
+    {
+      //stroka[strEnd++] = bukva;
+
+      if(check == true){
+        checkSumm[i++] = bukva;
+      }
+      else
+      {
+        hash ^= bukva;
+      }
+        
+      if(bukva == '*'){
+        hash ^= bukva;
+        check=true;
+      }
+    }
+    stroka[strEnd++] = bukva;
+
+
+/*
     if(bukva == '$') {
       konets = 0;
       if(est_nachalo)
@@ -52,7 +103,9 @@ void loop() {
         oshibochka(2);
       est_nachalo = false;
     }
+    */
   }
+  
 }
 
 void proverka_stroki() {
@@ -68,10 +121,52 @@ unsigned char chislo_v_bukvu(byte chislo) {
 }
 
 void stroka_poluchena() {  
-  Serial.write(stroka, konets);
-  Serial.print(" + \n");
-
-  byte stroka_opoznana = true;/*
+  
+  Serial.print(" + ");
+  Serial.write(stroka, strEnd);
+  Serial.print(" | ");
+  
+  byte stroka_opoznana = true;
+  
+  signature = 0;
+  signature |= ((long)stroka[3])<<16;
+  signature |= ((long)stroka[4])<<8;
+  signature |= ((long)stroka[5]); 
+//  Serial.println(signature,HEX);
+  
+  /* sig decode
+    gga 474741
+    gll 474C4C
+    gsa 475341
+    gsv 475356
+    rmc 524D43
+    vtg 565447 */
+  
+  switch(signature){
+    case 0x474741:
+      razbor_gga();
+      break;
+    case 0x474C4C:
+      razbor_gll();
+      break;
+    case 0x475341:
+      razbor_gsa();
+      break;
+    case 0x475356:
+      razbor_gsv();
+      break;
+    case 0x524D43:
+      razbor_rmc();
+      break;
+    case 0x565447:
+      razbor_vtg();
+      break;
+    default:
+      Serial.print("Neponyatnoe soobschenie\n");
+      break;
+  }
+  
+  /*
   switch(stroka[3]) {
     case 'G':
       switch(stroka[4]) {
@@ -86,6 +181,7 @@ void stroka_poluchena() {
     default:
       stroka_opoznana = false;
   }*/
+  /*
   if(stroka[3] == 'G' && stroka[4] == 'G' && stroka[5] == 'A')
     razbor_gga();
   else
@@ -106,7 +202,8 @@ void stroka_poluchena() {
             else
               stroka_opoznana = false;
   if(! stroka_opoznana)
-    Serial.print(" ! Neponyatnoe soobschenie\n");  
+    Serial.print(" ! Neponyatnoe soobschenie\n");
+    */
 }
 
 void razbor_gga() {
