@@ -3,6 +3,16 @@
 #define SoftSerial Serial1
 
 #define RAZMER_STROKI 256
+
+typedef enum Signature{ // <-- the us of typedef is optional.
+    gga=0x474741,
+    gll=0x474C4C,
+    gsa=0x475341,
+    gsv=0x475356,
+    rmc=0x524D43,
+    vtg=0x565447,
+};
+
 unsigned char stroka[RAZMER_STROKI];
 int konets = 0;
 byte est_nachalo = false;
@@ -13,6 +23,7 @@ char checkSumm[3]="";
 boolean check=false;
 char i=0;
 int hash = 0;
+char paramNum;
 
 
 struct dannye_ot_zhps {
@@ -37,21 +48,43 @@ void setup() {
 }
 
 
-void parse(){
+void parse(char bukva, char paramNum){
+  /*
   if(signature == 0 && strEnd > 6){
     //we have signature
     signature = 0;
     signature |= ((long)stroka[3])<<16;
     signature |= ((long)stroka[4])<<8;
     signature |= ((long)stroka[5]); 
+  }*/
+  
+  if(paramNum==1 && strEnd <= 6 )
+  {
+    //we have signature bytes
+    signature = 0;
+    signature |= ((long)stroka[3])<<16;
+    signature |= ((long)stroka[4])<<8;
+    signature |= ((long)stroka[5]); 
+    Serial.print(signature,HEX);
   }
   
-  if (signature != 0)
+  
+  
+  if (paramNum > 0)
   {
+      //Serial.print("#");
+      //Serial.print(paramNum,DEC);
+      //Serial.print("|");
+      Serial.print(bukva);
+    
+    //if* reset signature&&paramNum&&return
+    //if, paramNum++
+    //Serial.print("#");
+    //Serial.print(bukva);
+    
     //we have current bukva for analysing
     //2 counters: for args, for chars, splitted by ","
     //Serial.print(bukva);
-    
   }
 }
 
@@ -60,11 +93,11 @@ void loop() {
     char bukva = SoftSerial.read();
     //stroka[strEnd++] = bukva;
     if(bukva == '$'){
-      
       if (hash==strtol(checkSumm,NULL,16))
       {
-        stroka_poluchena();
+        stroka_poluchena(); //finalization
       }
+      paramNum=0;
       strEnd = 0;
       check=false;
       i=0;
@@ -78,8 +111,20 @@ void loop() {
       else
       {
         //parse usual expression
-        parse();
         hash ^= bukva;
+        if(bukva == ',')
+        {
+            paramNum++;
+            Serial.print("#");
+            Serial.print(paramNum,DEC);
+            Serial.print("|");
+        }
+        else
+        {   //parse like int float etc
+            parse(bukva,paramNum);
+            //put into storage
+        }
+        
       }
         
       if(bukva == '*'){
@@ -88,29 +133,6 @@ void loop() {
       }
     }
     stroka[strEnd++] = bukva;
-
-/*
-    if(bukva == '$') {
-      konets = 0;
-      if(est_nachalo)
-        oshibochka(1);
-      est_nachalo = true;
-    }
-
-    stroka[konets ++] = bukva;
-    
-    if(konets > 3 && stroka[konets - 3] == '*') {
-      if(est_nachalo) {
-        proverka_stroki();
-        if(proverka[0] == stroka[konets - 2] && proverka[1] == stroka[konets - 1])
-          stroka_poluchena();
-        else 
-          oshibochka(3);
-      } else
-        oshibochka(2);
-      est_nachalo = false;
-    }
-    */
   }
 }
 
@@ -131,16 +153,16 @@ unsigned char chislo_v_bukvu(byte chislo) {
 void stroka_poluchena() {  
   
   //Serial.print(" + ");
-  Serial.write(stroka, strEnd);
-  //Serial.print(" | ");
+  //Serial.write(stroka, strEnd);
   
-  byte stroka_opoznana = true;
+  Serial.print("---\n");
+  
+  return;
   
   signature = 0;
   signature |= ((long)stroka[3])<<16;
   signature |= ((long)stroka[4])<<8;
   signature |= ((long)stroka[5]); 
-//  Serial.println(signature,HEX);
   
   /* sig decode
     gga 474741
@@ -173,45 +195,6 @@ void stroka_poluchena() {
       Serial.print("Neponyatnoe soobschenie\n");
       break;
   }
-  
-  /*
-  switch(stroka[3]) {
-    case 'G':
-      switch(stroka[4]) {
-        case 'G':
-        break;
-      }
-      break;
-    case 'R':
-      break;
-    case 'V':
-      break;
-    default:
-      stroka_opoznana = false;
-  }*/
-  /*
-  if(stroka[3] == 'G' && stroka[4] == 'G' && stroka[5] == 'A')
-    razbor_gga();
-  else
-    if(stroka[3] == 'G' && stroka[4] == 'L' && stroka[5] == 'L')
-      razbor_gll();
-    else
-      if(stroka[3] == 'G' && stroka[4] == 'S' && stroka[5] == 'A')
-        razbor_gsa();
-      else
-        if(stroka[3] == 'G' && stroka[4] == 'S' && stroka[5] == 'V')
-          razbor_gsv();
-        else
-          if(stroka[3] == 'R' && stroka[4] == 'M' && stroka[5] == 'C')
-            razbor_rmc();
-          else
-            if(stroka[3] == 'V' && stroka[4] == 'T' && stroka[5] == 'G')
-              razbor_vtg();
-            else
-              stroka_opoznana = false;
-  if(! stroka_opoznana)
-    Serial.print(" ! Neponyatnoe soobschenie\n");
-    */
 }
 
 void razbor_gga() {

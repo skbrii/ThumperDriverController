@@ -14,8 +14,8 @@
 
 #define MIDPOINT 1
 
-#define MAXPOWER 2000
-#define MAXDIR 1200
+#define MAXPOWER 1500
+#define MAXDIR 1500
 
 #define SENSORUPDATEINTERVAL 12000
 
@@ -478,7 +478,7 @@ char increaseDirPower()
     
   if(dirPower<MAXDIR)
   {
-    dirPower+=80;
+    dirPower+=40;
     return 1;
   }
   else
@@ -508,11 +508,10 @@ void updateSensors()
     batStatus1 = tst_read_battery_status();
     batStatus2 = tst_read_battery_status_2();
     
-    gpsState.longitude = 589991;
-    gpsState.latitude = 46000;
-    gpsState.altitude = 123;
-    gpsState.time = 12313132;
-
+    gpsState.longitude = 8254329;
+    gpsState.latitude = 5459216;
+    gpsState.altitude = 133;
+    gpsState.time = 1378782610;
     //Serial.print(batStatus1);
     //Serial.print(batStatus2);
     
@@ -520,11 +519,10 @@ void updateSensors()
       asker.print('$');
       asker.print(batStatus1);
       asker.print(batStatus2);
-      //asker.print(gpsState.longitude);
-      //asker.print(gpsState.latitude);
-      //asker.print(gpsState.altitude);
-      //asker.print(gpsState.time);
-      
+      asker.print(gpsState.longitude);
+      asker.print(gpsState.latitude);
+      asker.print(gpsState.altitude);
+      asker.print(gpsState.time);
     sensorUpdateTimer=SENSORUPDATEINTERVAL;
     //delay(10);
     Serial.print("updated\n");
@@ -570,7 +568,7 @@ void loop()
           case 1:
             move = client.read();
             dir = client.read();
-            
+            Serial.print("asd");
             if(move!=MIDPOINT)
             {
               if(movePower<400)
@@ -585,7 +583,7 @@ void loop()
             if(dir!=MIDPOINT)
             {
               if(dirPower<400)
-                dirPower=400;
+                dirPower=300;
               dirPressed=1;
             }
             else
